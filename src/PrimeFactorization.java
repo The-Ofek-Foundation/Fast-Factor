@@ -29,10 +29,10 @@ public class PrimeFactorization	{
 				PF.getUserInput();
 			}
 		}
-		//else {
-		//	PrimeFactorization PF = new PrimeFactorization(pumpkins[0]);
-		//	PF.load();
-		//}
+		else {
+			PrimeFactorization PF = new PrimeFactorization(pumpkins[0]);
+			PF.load();
+		}
 	}
 	void getUserInput()	{
 		while (true)	{
@@ -45,13 +45,14 @@ public class PrimeFactorization	{
 		else number = new BigInteger(str);
 		int i = 0;
 		int power = 1;
-		BigInteger previous = new BigInteger("1");
+		StringBuilder previous = new StringBuilder("1");
 		boolean firstp = true;
 		boolean init = true;
 
 		while (!(number.equals(one)))	{
 			try {
-				if (number.remainder(primes[i]).doubleValue() == 0)	{
+				getEnd();
+				if (number.remainder(new BigInteger(primes[i].toString())).doubleValue() == 0)	{
 					if (primes[i].equals(previous))	{
 						if (firstp)	{
 							firstp = false;
@@ -66,7 +67,7 @@ public class PrimeFactorization	{
 						power = 1;
 					}
 					else {
-						if (init && primes[i].equals(number))	{
+						if (init && primes[i].equals(number.toString()))	{
 							System.out.print(primes[i] + " is a prime number!");
 							break;
 						}
@@ -76,14 +77,20 @@ public class PrimeFactorization	{
 						previous = primes[i];
 						power = 1;
 					}
-					number = number.divide(primes[i]);
+					number = number.divide(new BigInteger(primes[i].toString()));
+				}
+				else if (end.compareTo(new BigInteger(primes[i].toString())) != 1) {
+					power = 0;
+					System.out.print(" * " + number);
+					number = number.divide(number);
+					break;
 				}
 				else i++;
 			}	catch (java.lang.ArrayIndexOutOfBoundsException e)	{
 				System.out.println("\nPrime Database not vast enough to confirm.");
 				System.out.println("Database is at:\t\t" + primes[i-1].toString());
 				System.out.println("Database required:\t" + number.toString());
-				System.out.println("ETA:\t\t\t" + getTimeString(number.subtract(primes[i-1]).divide(new BigInteger("133")).add(new BigInteger("7"))));
+				System.out.println("ETA:\t\t\t" + getTimeString(number.subtract(new BigInteger(primes[i-1].toString())).divide(new BigInteger("133")).add(new BigInteger("7"))));
 				System.out.print("Expand Database?\t");
 				if (new Scanner(System.in).nextLine().equalsIgnoreCase("yes"))	{
 					ListOfPrimes LOP = new ListOfPrimes(number);
@@ -101,12 +108,10 @@ public class PrimeFactorization	{
 		getEnd();
 		int i;
 		for (i = 0; i < primes.length; i++)	{
-			if (number.remainder(primes[i]).doubleValue() == 0)	{
+			if (number.remainder(new BigInteger(primes[i].toString())).doubleValue() == 0)
 				break;
-			}
-			else if (end.subtract(primes[i]).doubleValue() <= 0)	{
+			else if (end.compareTo(new BigInteger(primes[i].toString())) != 1)
 				return true;
-			}
 		}
 		return false;
 	}
@@ -136,19 +141,20 @@ public class PrimeFactorization	{
 			System.err.println("ERROR: Cannot open file Primes.txt");
 			System.exit(97);
 		}
+		getEnd();
 		String str = "";
 		int prime = 0;
 		BigInteger two = new BigInteger("2");
 		input.nextLine();
-		while (input.hasNext())	{
-			str = input.nextLine();
+		while (input.hasNextLong())	{
+			str = input.nextLong() + "";
 			while (number.remainder(new BigInteger(str)).doubleValue() == 0)	{
 				prime = 1;
 				System.out.println(str);
 				number = number.divide(new BigInteger(str));
 			}
 			//end = number.divide(new BigInteger(str)).add(two);
-			if (end.subtract(new BigInteger(str)).doubleValue() <= 0) {
+			if (end.compareTo(new BigInteger(str)) != 1) {
 				prime = 2;
 				break;
 			}
@@ -177,19 +183,20 @@ public class PrimeFactorization	{
 			System.err.println("ERROR: Cannot open file Primes.txt");
 			System.exit(97);
 		}
-		String str = "";
+		StringBuilder str = null;
 		int count = 0;
 		BigInteger nop = new BigInteger(input.nextLine());
 		NOP = nop.intValue();
-		primes = new BigInteger[NOP];
+		primes = new StringBuilder[NOP];
 		while (input.hasNext())	{
-			str = input.nextLine();
-			primes[count] = new BigInteger(str);
+			str = new StringBuilder(input.nextLong() + "");
+			str.trimToSize();
+			primes[count] = str;
 			count++;
 		}
 		input.close();
 	}
-	BigInteger[] primes;
+	StringBuilder[] primes;
 	String getTimeString(BigInteger timeInSeconds)	{
 		BigInteger sixty = new BigInteger("60");
 		int seconds = timeInSeconds.remainder(sixty).intValue();
