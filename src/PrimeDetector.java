@@ -13,7 +13,9 @@ public class PrimeDetector	{
 		number = new BigInteger(n);
 	}
 	PrimeDetector()	{
-
+	}
+	PrimeDetector(boolean b)	{
+		loadDatabase();
 	}
 	public static void main(String[] pumpkins) {
 		if (pumpkins[0].equalsIgnoreCase("Load"))	{
@@ -28,6 +30,25 @@ public class PrimeDetector	{
 			PrimeDetector PD = new PrimeDetector(pumpkins[0]);
 			PD.run();
 		}
+	}
+	boolean isPrime(String str)	{
+		if (str.contains("E"))	number = new BigInteger(sci2str(str));
+		else number = new BigInteger(str);
+		getEnd();
+		int prime = 0;
+		int i;
+		for (i = 0; i < primes.length; i++)
+			if (number.remainder(new BigInteger(primes[i].toString())).doubleValue() == 0)	{
+				prime = 1;
+				break;
+			}
+			else if (end.compareTo(new BigInteger(primes[i].toString())) != 1)	{
+				prime = 2;
+				break;
+			}
+		if (prime == 1)	return false;
+		else if (prime == 0)	return false;
+		else return true;
 	}
 	void run()	{
 		getEnd();
@@ -56,28 +77,27 @@ public class PrimeDetector	{
 		}*/
 	}
 	void run(String str)	{
+		double startTime = System.nanoTime();
 		if (str.contains("E"))	number = new BigInteger(sci2str(str));
 		else number = new BigInteger(str);
 		getEnd();
 		int prime = 0;
 		int i;
 		for (i = 0; i < primes.length; i++)
-			if (number.remainder(primes[i]).doubleValue() == 0)	{
+			if (number.remainder(new BigInteger(primes[i].toString())).doubleValue() == 0)	{
 				prime = 1;
 				break;
 			}
-			else if (end.subtract(primes[i]).doubleValue() <= 0)	{
+			else if (end.subtract(new BigInteger(primes[i].toString())).doubleValue() <= 0)	{
 				prime = 2;
 				break;
 			}
-		if (prime == 1)	{
-			System.out.println(number.toString() + " is not a prime number!\t(" + primes[i].toString() + ")");
-		}
+		if (prime == 1)	System.out.printf("%s is not a prime number! (%s) in %.3f seconds\n", number.toString(), primes[i].toString(), (System.nanoTime() - startTime) / 1E9);
 		else if (prime == 0)	{
 			System.out.println("Prime Database not vast enough to confirm.");
 			System.out.println("Database is at:\t\t" + primes[i-1].toString());
 			System.out.println("Database required:\t" + end.toString());
-			System.out.println("ETA:\t\t\t" + getTimeString(end.subtract(primes[i-1]).divide(new BigInteger("133")).add(new BigInteger("7"))));
+			System.out.println("ETA:\t\t\t" + getTimeString(end.subtract(new BigInteger(primes[i-1].toString())).divide(new BigInteger("133")).add(new BigInteger("7"))));
 			System.out.print("Expand Database?\t");
 			if (new Scanner(System.in).nextLine().equalsIgnoreCase("yes"))	{
 				ListOfPrimes LOP = new ListOfPrimes(end);
@@ -86,9 +106,7 @@ public class PrimeDetector	{
 				run(str);
 			}
 		}
-		else {
-			System.out.println(number.toString() + " is a prime number!");
-		}
+		else	System.out.printf("%s is a prime number! in %.3f seconds\n", number.toString(), (System.nanoTime() - startTime) / 1E9);
 	}
 	void getUserInput()	{
 		while (true)	{
@@ -99,12 +117,13 @@ public class PrimeDetector	{
 	void getEnd()	{
 		end = BigRoot.sqrt(new BigDecimal(number), 40).toBigInteger();
 	}
-	BigInteger[] primes;
-	BigInteger[] primesCopy;
+	StringBuilder[] primes;
+	StringBuilder[] primesCopy;
 	BigInteger end;
 	Scanner input;
 	BigInteger two = new BigInteger("2");
 	void load()	{
+		double startTime = System.nanoTime();
 		try {
 			input = new Scanner(new File("Primes.txt"));
 		}
@@ -115,21 +134,19 @@ public class PrimeDetector	{
 		String str = "";
 		int prime = 0;
 		input.nextLine();
-		while (input.hasNext())	{
-			str = input.nextLine();
+		while (input.hasNextLong())	{
+			str = input.nextLong() + "";
 			if (number.remainder(new BigInteger(str)).doubleValue() == 0)	{
 				prime = 1;
 				break;
 			}
 			//end = number.divide(new BigInteger(str)).add(two);
-			if (end.subtract(new BigInteger(str)).doubleValue() <= 0) {
+			if (end.compareTo(new BigInteger(str)) != 1) {
 				prime = 2;
 				break;
 			}
 		}
-		if (prime == 1)	{
-			System.out.println(number.toString() + " is not a prime number!\t(" + str + ")");
-		}
+		if (prime == 1)	System.out.printf("%s is not a prime number! (%s) in %.3f seconds\n", number.toString(), str, (System.nanoTime() - startTime) / 1E9);
 		else if (prime == 0)	{
 			System.out.println("Prime Database not vast enough to confirm.");
 			System.out.println("Database is at:\t\t" + new BigInteger(str).toString());
@@ -141,9 +158,7 @@ public class PrimeDetector	{
 				LOP.run();
 			}
 		}
-		else {
-			System.out.println(number.toString() + " is a prime number!");
-		}
+		else	System.out.printf("%s is a prime number! in %.3f seconds\n", number.toString(), (System.nanoTime() - startTime) / 1E9);
 		input.close();
 	}
 	int NOP;
@@ -155,17 +170,19 @@ public class PrimeDetector	{
 			System.err.println("ERROR: Cannot open file Primes.txt");
 			System.exit(97);
 		}
-		String str = "";
+		StringBuilder str = null;
 		int count = 0;
 		BigInteger nop = new BigInteger(input.nextLine());
 		NOP = nop.intValue();
-		primes = new BigInteger[NOP];
-		primesCopy = new BigInteger[NOP];
-		while (input.hasNext())	{
-			str = input.nextLine();
-			primes[count] = new BigInteger(str);
+		primes = new StringBuilder[NOP];
+		primesCopy = new StringBuilder[NOP];
+		while (input.hasNextLong())	{
+			str = new StringBuilder(input.nextLong() + "");
+			str.trimToSize();
+			primes[count] = str;
 			count++;
 		}
+		System.out.printf("Prime Certainty Limit:\t%,d\n", (new BigInteger(str.toString()).multiply(new BigInteger(str.toString()))));
 		input.close();
 	}
 	String getTimeString(BigInteger timeInSeconds)	{
@@ -220,9 +237,7 @@ public class PrimeDetector	{
 				number += "0";
 			}
 		}
-		if (addOne)	{
-			number = new BigInteger(number).add(new BigInteger("1")).toString();
-		}
+		if (addOne)	number = new BigInteger(number).add(new BigInteger("1")).toString();
 		return number;
 	}
 }
